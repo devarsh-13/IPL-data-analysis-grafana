@@ -1,0 +1,101 @@
+1)
+
+SELECT
+  SUM(batsman_runs) AS "Runs",
+  batting_team
+FROM
+  deliveries
+GROUP BY
+  batting_team
+ORDER BY
+  SUM(batsman_runs) DESC
+LIMIT
+  5;
+
+
+2)
+
+SELECT
+    d.batsman,
+    SUM(CASE WHEN d.is_wicket THEN 1 ELSE 0 END) AS dismissals,
+    CASE
+        WHEN SUM(CASE WHEN d.is_wicket THEN 1 ELSE 0 END) = 0 THEN 0
+        ELSE SUM(d.batsman_runs) * 1.0 / SUM(CASE WHEN d.is_wicket THEN 1 ELSE 0 END)
+    END AS average
+FROM
+    deliveries d
+JOIN
+    matches m ON d.id = m.id
+WHERE
+    d.extra_runs = 0 AND
+    EXTRACT(YEAR FROM m.date) >=2018
+    
+GROUP BY
+    d.batsman
+ORDER BY
+    average DESC
+LIMIT 5;
+
+
+3)
+
+SELECT
+    city,
+    COUNT(*) AS matches_played
+FROM
+    matches
+GROUP BY
+    city
+ORDER BY
+    matches_played DESC
+Limit 10;
+
+
+40
+
+SELECT
+    d.batsman,
+    ROUND((SUM(d.batsman_runs) / (COUNT(d.ball) * 1.0)) * 100, 2) AS strike_rate
+FROM
+    deliveries d
+JOIN
+    matches m ON d.id = m.id
+WHERE
+    d.extra_runs = 0
+    AND EXTRACT(YEAR FROM m.date) >= 2018
+GROUP BY
+    d.batsman
+HAVING
+    COUNT(d.ball) >= 500
+ORDER BY
+    strike_rate DESC
+LIMIT 3;
+
+5)
+
+SELECT
+    d.bowler,
+    ROUND(SUM(d.total_runs) * 1.0 / COUNT(*), 2) AS economy_rate
+FROM
+    deliveries d
+JOIN
+    matches m ON d.id = m.id
+WHERE
+    d.extras_type NOT IN ('wides', 'noballs')
+    AND EXTRACT(YEAR FROM m.date) >=2018
+GROUP BY
+    d.bowler
+HAVING
+    COUNT(*) >= 500
+ORDER BY
+    economy_rate ASC
+LIMIT 3;
+
+6)
+
+SELECT batting_team, COUNT(*) AS boundaries_scored
+FROM deliveries as d
+WHERE  total_runs = 4  OR total_runs = 6
+GROUP BY batting_team
+ORDER BY boundaries_scored DESC
+LIMIT 5;
